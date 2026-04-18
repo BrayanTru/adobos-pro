@@ -1,0 +1,7 @@
+# Dependencias y carpetas de salida
+node_modules/
+dist/
+
+# Variables de entorno (archivos sensibles)
+.env.local
+.env
