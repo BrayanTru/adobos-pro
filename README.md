@@ -1,64 +1,74 @@
 # AdobosPro — Gestión de Ventas y Gastos
 
-Sistema de gestión comercial para empresas de adobos. Registro de transacciones, clientes, reportes financieros y notificaciones de recompra.
+Sistema de gestión comercial para empresas de adobos. Permite registrar transacciones con detalle de productos por tamaño, gestionar clientes con ubicación geográfica, visualizar reportes financieros y recibir alertas de recompra automáticas.
 
-## Inicio rápido (demo offline)
+---
 
-Abre `index.html` directamente en el navegador — funciona sin configuración usando localStorage.
+## Funcionalidades
 
-## Producción con Supabase
+### Transacciones
 
-### 1. Crear proyecto en Supabase
-- Ve a [supabase.com](https://supabase.com) → New Project (plan gratuito)
-- Copia la **URL** y **anon key** desde Settings → API
+- Registro de ingresos y egresos
+- En ventas (ingresos): selección de múltiples tamaños de adobo por transacción con cálculo automático del total
+- En gastos (egresos): categorización manual y valor libre
+- Detalle expandible por transacción mostrando cada línea de producto
+- Filtros por tipo de movimiento y búsqueda por descripción
 
-### 2. Crear las tablas
-- En el dashboard de Supabase → SQL Editor
-- Pega y ejecuta el contenido de `schema.sql`
+### Clientes
 
-### 3. Configurar variables de entorno
-```bash
-cp .env.example .env.local
-# Edita .env.local con tu URL y clave
-```
+- Creación, edición y eliminación de clientes
+- Ubicación detallada: departamento, municipio y dirección exacta
+- Enlace directo a Google Maps por cliente
+- Configuración de ciclo de recompra individual
 
-### 4. Instalar y ejecutar
-```bash
-npm install
-npm run dev
-```
+### Notificaciones de recompra
 
-### 5. Deploy
-```bash
-npm run build
-# Sube la carpeta dist/ a Vercel, Netlify o cualquier hosting estático
-```
-
-## Estructura del proyecto
+Cada cliente tiene un ciclo de recompra configurable (default: 25 días).
 
 ```
-src/
-├── pages/
-│   ├── Dashboard.jsx        # KPIs, gráficas, últimas transacciones
-│   ├── Transacciones.jsx    # CRUD de movimientos
-│   ├── Clientes.jsx         # Gestión de clientes + Maps
-│   ├── Reportes.jsx         # Análisis mensual/anual
-│   └── Notificaciones.jsx   # Alertas de recompra
-│
-├── components/
-│   ├── FormTransaccion.jsx  # Modal de registro de transacción
-│   ├── FormCliente.jsx      # Modal de cliente
-│   ├── TablaTransacciones.jsx
-│   └── Notificaciones.jsx
-│
-├── services/
-│   ├── supabaseClient.js    # ← Configura aquí tus credenciales
-│   ├── transaccionesService.js
-│   └── clientesService.js
-│
-└── store/
-    └── atoms.js             # Estado global con Jotai
+días_restantes = ciclo - (hoy - última_venta)
 ```
+
+- 🔴 ≤ 0 días → Listo para nueva venta
+- 🟡 1–5 días → Alerta de proximidad
+- ✅ > 5 días → Al día
+- Opción de eliminar el recordatorio por cliente desde el módulo de notificaciones
+
+### Reportes financieros
+
+- KPIs anuales: ingresos, egresos, utilidad y margen
+- Gráfica de ingresos vs egresos por mes
+- Gráfica de unidades vendidas por mes
+- Ventas desglosadas por tamaño de adobo
+- Detalle de utilidad mes a mes
+- Egresos agrupados por categoría
+- Selector de año
+
+### Dashboard
+
+- KPIs del mes en curso
+- Gráfica comparativa de los últimos 6 meses
+- Últimas transacciones registradas
+- Unidades vendidas por tamaño con barra de progreso relativa
+- Contador de alertas de recompra activas
+
+### Configuración de productos
+
+- Precios editables por tamaño directamente desde la interfaz
+- Los precios actualizados se aplican automáticamente a nuevas ventas
+
+---
+
+## Tamaños y precios iniciales
+
+| Tamaño        | Gramaje | Precio  |
+| ------------- | ------- | ------- |
+| Personal      | 80g     | $2.000  |
+| Familiar      | 240g    | $3.900  |
+| Grande        | 500g    | $8.000  |
+| Institucional | 1000g   | $13.000 |
+
+---
 
 ## Categorías de transacciones
 
@@ -66,23 +76,185 @@ src/
 
 **Egresos:** Materia prima · Comisiones · Transporte/envío · Salarios/pagos · Marketing/publicidad · Gasolina
 
-## Sistema de notificaciones
+---
 
-Cada cliente tiene un ciclo de recompra configurable (default: 25 días).
+## Stack tecnológico
 
-- `días_restantes = ciclo - (hoy - última_venta)`
-- 🔴 ≤ 0 días → **¡Listo para nueva venta!**
-- 🟡 1–5 días → Alerta de proximidad
-- ✅ > 5 días → Al día
+| Capa          | Tecnología                                   |
+| ------------- | -------------------------------------------- |
+| Frontend      | React 18 + Vite                              |
+| Estilos       | CSS propio con variables (sin Tailwind)      |
+| Estado global | Jotai                                        |
+| Routing       | React Router v6                              |
+| Base de datos | Supabase (PostgreSQL)                        |
+| API           | REST autogenerada por Supabase               |
+| Mapas         | Google Maps (enlaces dinámicos, sin API key) |
+| Deploy        | Vercel                                       |
 
-## Tecnologías
+---
 
-| Capa | Tecnología |
-|------|-----------|
-| Frontend | React 18 + Vite |
-| Estilos | Tailwind CSS |
-| Estado | Jotai |
-| Routing | React Router v6 |
-| Backend | Supabase (PostgreSQL) |
-| API | Auto-generada por Supabase REST |
-| Mapas | Google Maps (links dinámicos, sin API key) |
+## Estructura del proyecto
+
+```
+src/
+├── constants/
+│   ├── categorias.js          # Categorías de ingresos y egresos
+│   ├── meses.js               # Nombres de meses en español
+│   └── ubicaciones.js         # Lista de departamentos de Colombia
+│
+├── utils/
+│   └── format.js              # fmt, fmtDate, initials, daysDiff
+│
+├── hooks/
+│   ├── useClientes.js         # CRUD clientes
+│   ├── useTransacciones.js    # CRUD transacciones
+│   ├── useRecordatorios.js    # Lógica de recordatorios y alertas
+│   ├── usePrecios.js          # Lectura y edición de precios
+│   ├── useDashboard.js        # Cálculos y datos del dashboard
+│   └── useReportes.js         # Cálculos de reportes por año
+│
+├── context/
+│   └── ToastContext.js        # Contexto global de notificaciones toast
+│
+├── services/
+│   ├── supabaseClient.js      # Inicialización del cliente Supabase
+│   ├── clientesService.js     # Queries de clientes y recordatorios
+│   ├── transaccionesService.js# Queries de transacciones + items
+│   ├── itemsService.js        # Queries de transaccion_items
+│   └── preciosService.js      # Queries de precios
+│
+├── store/
+│   └── atoms.js               # Átomos Jotai + derivados (KPIs, métricas, alertas)
+│
+├── components/
+│   ├── ui/
+│   │   ├── KPICard.jsx
+│   │   ├── Modal.jsx
+│   │   ├── Badge.jsx
+│   │   ├── BarChart.jsx
+│   │   ├── Toast.jsx
+│   │   └── ConfirmModal.jsx
+│   ├── transacciones/
+│   │   ├── FormTransaccion.jsx    # Orquesta ingreso/egreso
+│   │   ├── SelectorTipo.jsx       # Botones ingreso/egreso
+│   │   ├── FormIngreso.jsx        # Formulario de venta multi-producto
+│   │   ├── FormEgreso.jsx         # Formulario de gasto
+│   │   ├── LineaProducto.jsx      # Fila editable de tamaño + cantidad
+│   │   ├── ResumenVenta.jsx       # Totales calculados de la venta
+│   │   ├── TablaTransacciones.jsx # Orquesta la tabla
+│   │   ├── FilaTransaccion.jsx    # Fila principal de la tabla
+│   │   └── FilaDetalle.jsx        # Fila expandida con detalle de items
+│   ├── clientes/
+│   │   ├── FormCliente.jsx
+│   │   └── TablaClientes.jsx
+│   ├── dashboard/
+│   │   ├── UltimasTransacciones.jsx
+│   │   └── TarjetasUnidades.jsx
+│   ├── reportes/
+│   │   ├── GraficaUnidades.jsx
+│   │   ├── VentasPorTamano.jsx
+│   │   ├── DetalleMensual.jsx
+│   │   └── EgresosPorCategoria.jsx
+│   ├── configuracion/
+│   │   └── TablaPrecios.jsx
+│   └── notificaciones/
+│       └── NotifItem.jsx
+│
+├── pages/
+│   ├── Dashboard.jsx
+│   ├── Transacciones.jsx
+│   ├── Clientes.jsx
+│   ├── Reportes.jsx
+│   ├── Notificaciones.jsx
+│   └── Configuracion.jsx
+│
+├── App.jsx                    # Shell, sidebar, rutas, carga inicial de datos
+├── main.jsx
+└── index.css                  # Sistema de diseño completo con variables CSS
+```
+
+---
+
+## Base de datos
+
+El schema completo está en `schema.sql`. Las tablas son:
+
+| Tabla               | Descripción                          |
+| ------------------- | ------------------------------------ |
+| `clientes`          | Datos de clientes con ubicación      |
+| `transacciones`     | Cabecera de cada movimiento          |
+| `transaccion_items` | Detalle de productos por transacción |
+| `recordatorios`     | Ciclo de recompra por cliente        |
+| `precios`           | Precios configurables por tamaño     |
+
+---
+
+## Instalación y desarrollo local
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/tu-usuario/adobos-pro.git
+cd adobos-pro
+```
+
+### 2. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 3. Crear proyecto en Supabase
+
+- Ve a [supabase.com](https://supabase.com) → New Project (plan gratuito)
+- En el SQL Editor ejecuta el contenido de `schema.sql`
+- Copia la **Project URL** y **anon key** desde Settings → API
+
+### 4. Configurar variables de entorno
+
+```bash
+cp .env.example .env.local
+```
+
+Edita `.env.local`:
+
+```
+VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGci...
+```
+
+### 5. Correr en desarrollo
+
+```bash
+npm run dev
+# http://localhost:5173
+```
+
+---
+
+## Deploy en Vercel
+
+1. Sube el proyecto a GitHub
+2. Ve a [vercel.com](https://vercel.com) → Add New Project → selecciona el repositorio
+3. En **Environment Variables** agrega `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`
+4. Click **Deploy**
+
+Vercel detecta Vite automáticamente. Cada `git push` a `main` redespliega la app.
+
+```bash
+# Build manual
+npm run build
+# Genera la carpeta dist/
+```
+
+---
+
+## Notas sobre Supabase plan gratuito
+
+El plan gratuito es suficiente para el volumen de un negocio local:
+
+- 500 MB de base de datos
+- 5 GB de ancho de banda mensual
+- 50.000 requests API por mes
+
+El único punto a tener en cuenta es que los proyectos sin actividad por más de 7 días se pausan automáticamente. Con el uso normal de la app esto no ocurre. Si se necesita garantizar disponibilidad continua se puede configurar un ping automático desde [cron-job.org](https://cron-job.org) cada 3 días.
