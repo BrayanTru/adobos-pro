@@ -9,6 +9,7 @@ export default function FormCliente({ onSave, onClose, initial = null }) {
       departamento: "Huila",
       municipio: "",
       direccion: "",
+      telefono: "",
     },
   );
   const [saving, setSaving] = useState(false);
@@ -69,6 +70,16 @@ export default function FormCliente({ onSave, onClose, initial = null }) {
             placeholder="Ej: Cra 5 #12-34, barrio centro"
             value={form.direccion}
             onChange={(e) => set("direccion", e.target.value)}
+          />
+        </div>
+
+        <div className="form-group form-full">
+          <label className="form-label">Teléfono (opcional)</label>
+          <input
+            className="form-input"
+            placeholder="Ej: 311 234 5678"
+            value={form.telefono || ""}
+            onChange={(e) => set("telefono", e.target.value)}
           />
         </div>
       </div>

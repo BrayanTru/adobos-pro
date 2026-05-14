@@ -29,6 +29,7 @@ export default function TablaClientes({
               "Departamento",
               "Municipio",
               "Dirección",
+              "Teléfono",
               "Última venta",
               "Recordatorio",
               "Mapa",
@@ -77,6 +78,20 @@ export default function TablaClientes({
                     whiteSpace: "nowrap",
                   }}>
                   {c.direccion || "—"}
+                </td>
+                <td style={{ fontSize: 12 }}>
+                  {c.telefono ? (
+                    <a
+                      href={`tel:${c.telefono}`}
+                      style={{
+                        color: "var(--accent)",
+                        textDecoration: "none",
+                      }}>
+                      📞 {c.telefono}
+                    </a>
+                  ) : (
+                    <span style={{ color: "var(--border)" }}>—</span>
+                  )}
                 </td>
                 <td style={{ color: "var(--muted)" }}>
                   {lastSale ? (

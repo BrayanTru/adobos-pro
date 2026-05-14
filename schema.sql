@@ -12,8 +12,11 @@ CREATE TABLE IF NOT EXISTS clientes (
   departamento  TEXT,
   municipio     TEXT,
   direccion     TEXT,
+  telefono      TEXT,
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
+
+
 
 -- ─────────────────────────────────────────────────────────────
 -- TABLA: transacciones
