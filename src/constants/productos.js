@@ -1,5 +1,5 @@
 export const TAMANOS = [
-  { tamano: "Personal", gramos: 80, precio: 2000 },
+  { tamano: "Personal", gramos: 110, precio: 2000 },
   { tamano: "Familiar", gramos: 240, precio: 3900 },
   { tamano: "Grande", gramos: 500, precio: 8000 },
   { tamano: "Institucional", gramos: 1000, precio: 13000 },

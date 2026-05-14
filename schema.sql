@@ -85,7 +85,7 @@ CREATE INDEX IF NOT EXISTS idx_recordatorios_cliente    ON recordatorios(cliente
 -- DATOS INICIALES
 -- ─────────────────────────────────────────────────────────────
 INSERT INTO precios (tamano, gramos, precio) VALUES
-  ('Personal',      80,   2000),
+  ('Personal',      110,   2000),
   ('Familiar',      240,  3900),
   ('Grande',        500,  8000),
   ('Institucional', 1000, 13000)
