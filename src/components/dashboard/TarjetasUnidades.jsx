@@ -8,7 +8,7 @@ const ICONOS = {
   Institucional: "🏭",
 };
 const GRAMOS = {
-  Personal: "80g",
+  Personal: "110g",
   Familiar: "240g",
   Grande: "500g",
   Institucional: "1000g",

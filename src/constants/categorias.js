@@ -6,7 +6,11 @@ export const CATEGORIAS = {
     "Transporte/envío",
     "Salarios/pagos",
     "Marketing/publicidad",
+    "Diesel",
     "Gasolina",
+    "Arriendo",
+    "Limpieza y mantenimiento",
+    "Peajes",
   ],
 };
 

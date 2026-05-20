@@ -18,13 +18,17 @@ export default function Transacciones() {
 
   const filtered = transacciones
     .filter((t) => filtro === "todos" || t.tipo_movimiento === filtro)
-    .filter(
-      (t) =>
-        !search ||
-        t.descripcion?.toLowerCase().includes(search.toLowerCase()) ||
-        t.categoria?.toLowerCase().includes(search.toLowerCase()) ||
-        t.tamano?.toLowerCase().includes(search.toLowerCase()),
-    );
+    .filter((t) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      const cliente = clientes.find((c) => c.id === t.cliente_id);
+      return (
+        t.descripcion?.toLowerCase().includes(q) ||
+        t.categoria?.toLowerCase().includes(q) ||
+        t.tamano?.toLowerCase().includes(q) ||
+        cliente?.nombre?.toLowerCase().includes(q)
+      );
+    });
 
   // Ahora recibe { transaccion, items }
   const handleSave = async ({ transaccion, items }) => {
@@ -73,7 +77,7 @@ export default function Transacciones() {
           <input
             className="form-input"
             style={{ maxWidth: 300 }}
-            placeholder="Buscar descripción, categoría o tamaño..."
+            placeholder="Buscar descripción, cliente, categoría o tamaño..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
