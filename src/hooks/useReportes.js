@@ -21,6 +21,7 @@ export function useReportes(anio) {
     const eg = tx
       .filter((t) => t.tipo_movimiento === "egreso")
       .reduce((s, t) => s + Number(t.valor), 0);
+
     const und = tx
       .filter((t) => t.tipo_movimiento === "ingreso")
       .reduce(
@@ -32,9 +33,40 @@ export function useReportes(anio) {
           ),
         0,
       );
-    return { mes: MESES[m], label: MESES[m], ing, eg, util: ing - eg, und };
-  });
 
+    // Detalle por tamaño en este mes
+    const porTamanoMes = ORDEN_TAMANOS.map((tamano) => {
+      let cantidad = 0,
+        valor = 0;
+      tx.filter((t) => t.tipo_movimiento === "ingreso").forEach((t) => {
+        (t.transaccion_items || [])
+          .filter((i) => i.tamano === tamano)
+          .forEach((i) => {
+            cantidad += Number(i.cantidad);
+            valor += Number(i.subtotal);
+          });
+      });
+      return { tamano, cantidad, valor };
+    });
+
+    // Detalle de egresos en este mes
+    const egresosMes = {};
+    tx.filter((t) => t.tipo_movimiento === "egreso").forEach((t) => {
+      egresosMes[t.categoria] =
+        (egresosMes[t.categoria] || 0) + Number(t.valor);
+    });
+
+    return {
+      mes: MESES[m],
+      label: MESES[m],
+      ing,
+      eg,
+      util: ing - eg,
+      und,
+      porTamanoMes,
+      egresosMes,
+    };
+  });
   const totalIng = mesesData.reduce((s, m) => s + m.ing, 0);
   const totalEg = mesesData.reduce((s, m) => s + m.eg, 0);
   const totalUtil = totalIng - totalEg;
