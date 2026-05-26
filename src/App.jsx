@@ -20,6 +20,7 @@ import Clientes from "./pages/Clientes";
 import Reportes from "./pages/Reportes";
 import Notificaciones from "./pages/Notificaciones";
 import Configuracion from "./pages/Configuracion";
+import Exportar from "./pages/Exportar";
 
 export default function App() {
   const [clientes, setClientes] = useAtom(clientesAtom);
@@ -54,6 +55,7 @@ export default function App() {
       badge: alertCount,
     },
     { to: "/configuracion", icon: "⚙", label: "Configuración" },
+    { to: "/exportar", icon: "⬇", label: "Exportar" },
   ];
 
   return (
@@ -182,6 +184,7 @@ export default function App() {
             <Route path="/reportes" element={<Reportes />} />
             <Route path="/notificaciones" element={<Notificaciones />} />
             <Route path="/configuracion" element={<Configuracion />} />
+            <Route path="/exportar" element={<Exportar />} />
           </Routes>
         </main>
 
