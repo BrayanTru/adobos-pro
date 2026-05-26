@@ -12,3 +12,18 @@ export const MESES = [
   "Nov",
   "Dic",
 ];
+
+export const MESES_COMPLETOS = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];

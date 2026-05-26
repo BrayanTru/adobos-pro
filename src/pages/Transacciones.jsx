@@ -1,38 +1,36 @@
 import { useState } from "react";
-import { useAtom } from "jotai";
-import { clientesAtom } from "../store/atoms";
 import { useTransacciones } from "../hooks/useTransacciones";
 import { useRecordatorios } from "../hooks/useRecordatorios";
+import { useTransaccionesFiltradas } from "../hooks/useTransaccionesFiltradas";
 import FormTransaccion from "../components/transacciones/FormTransaccion";
-import TablaTransacciones from "../components/transacciones/TablaTransacciones";
+import GrupoMes from "../components/transacciones/GrupoMes";
+import FiltrosTransacciones from "../components/transacciones/FiltrosTransacciones";
+import KpisAnio from "../components/transacciones/KpisAnio";
 import ConfirmModal from "../components/ui/ConfirmModal";
 
 export default function Transacciones() {
-  const [clientes] = useAtom(clientesAtom);
-  const { transacciones, crear, eliminar } = useTransacciones();
+  const { crear, eliminar } = useTransacciones();
   const { upsert, getByCliente } = useRecordatorios();
+  const {
+    anios,
+    anio,
+    setAnio,
+    search,
+    setSearch,
+    filtro,
+    setFiltro,
+    filtradas,
+    gruposPorMes,
+    kpisAnio,
+    clientes,
+  } = useTransaccionesFiltradas();
+
   const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState("");
-  const [filtro, setFiltro] = useState("todos");
   const [confirm, setConfirm] = useState(null);
+  const mesActual = new Date().getMonth();
 
-  const filtered = transacciones
-    .filter((t) => filtro === "todos" || t.tipo_movimiento === filtro)
-    .filter((t) => {
-      if (!search) return true;
-      const q = search.toLowerCase();
-      const cliente = clientes.find((c) => c.id === t.cliente_id);
-      return (
-        t.descripcion?.toLowerCase().includes(q) ||
-        t.categoria?.toLowerCase().includes(q) ||
-        t.tamano?.toLowerCase().includes(q) ||
-        cliente?.nombre?.toLowerCase().includes(q)
-      );
-    });
-
-  // Ahora recibe { transaccion, items }
   const handleSave = async ({ transaccion, items }) => {
-    const nueva = await crear({ transaccion, items });
+    await crear({ transaccion, items });
     if (transaccion.tipo_movimiento === "ingreso" && transaccion.cliente_id) {
       const rec = getByCliente(transaccion.cliente_id);
       await upsert({
@@ -66,42 +64,43 @@ export default function Transacciones() {
         </button>
       </div>
 
-      <div className="card">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: 20,
-          }}>
-          <input
-            className="form-input"
-            style={{ maxWidth: 300 }}
-            placeholder="Buscar descripción, cliente, categoría o tamaño..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="filter-tabs">
-            {[
-              ["todos", "Todos"],
-              ["ingreso", "↑ Ingresos"],
-              ["egreso", "↓ Egresos"],
-            ].map(([val, label]) => (
-              <button
-                key={val}
-                className={`filter-tab ${filtro === val ? "active" : ""}`}
-                onClick={() => setFiltro(val)}>
-                {label}
-              </button>
-            ))}
+      <div className="card mb-6">
+        <FiltrosTransacciones
+          anios={anios}
+          anio={anio}
+          setAnio={setAnio}
+          search={search}
+          setSearch={setSearch}
+          filtro={filtro}
+          setFiltro={setFiltro}
+          total={filtradas.length}
+        />
+        {filtradas.length > 0 && <KpisAnio kpis={kpisAnio} anio={anio} />}
+      </div>
+
+      {gruposPorMes.length === 0 ? (
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-icon">⇄</div>
+            <div>
+              {search || filtro !== "todos"
+                ? "Sin resultados para esta búsqueda"
+                : `Sin transacciones en ${anio}`}
+            </div>
           </div>
         </div>
-        <TablaTransacciones
-          transacciones={filtered}
-          clientes={clientes}
-          onDelete={handleDelete}
-        />
-      </div>
+      ) : (
+        gruposPorMes.map(({ mes, txs }) => (
+          <GrupoMes
+            key={mes}
+            mes={mes}
+            transacciones={txs}
+            clientes={clientes}
+            onDelete={handleDelete}
+            defaultAbierto={mes === mesActual}
+          />
+        ))
+      )}
 
       {showForm && (
         <FormTransaccion
