@@ -1,5 +1,6 @@
 import LineaProducto from "./LineaProducto";
 import ResumenVenta from "./ResumenVenta";
+import BuscadorCliente from "../ui/BuscadorCliente";
 
 const LINEA_VACIA = { tamano: "", cantidad: "" };
 
@@ -54,17 +55,12 @@ export default function FormIngreso({
       {/* Cliente */}
       <div className="form-group" style={{ marginBottom: 20 }}>
         <label className="form-label">Cliente</label>
-        <select
-          className="form-select"
+        <BuscadorCliente
+          clientes={clientes}
           value={clienteId}
-          onChange={(e) => setClienteId(e.target.value)}>
-          <option value="">— Sin cliente —</option>
-          {clientes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
-          ))}
-        </select>
+          onChange={setClienteId}
+          placeholder="Buscar por nombre o municipio..."
+        />
       </div>
 
       {/* Encabezado columnas */}

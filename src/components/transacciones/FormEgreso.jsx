@@ -1,4 +1,5 @@
 import { CATEGORIAS } from "../../constants/categorias";
+import BusacdorCliente from "../ui/BuscadorCliente";
 
 export default function FormEgreso({ form, onChange, clientes }) {
   const set = (k, v) => onChange({ ...form, [k]: v });
@@ -54,17 +55,12 @@ export default function FormEgreso({ form, onChange, clientes }) {
 
       <div className="form-group form-full">
         <label className="form-label">Cliente (opcional)</label>
-        <select
-          className="form-select"
+        <BusacdorCliente
+          clientes={clientes}
           value={form.cliente_id}
-          onChange={(e) => set("cliente_id", e.target.value)}>
-          <option value="">— Sin cliente —</option>
-          {clientes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
-          ))}
-        </select>
+          onChange={(id) => set("cliente_id", id)}
+          placeholder="Buscar por nombre o municipio..."
+        />
       </div>
 
       <div className="form-group form-full">
