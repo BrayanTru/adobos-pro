@@ -7,6 +7,7 @@ export default function FilaTransaccion({
   isOpen,
   tieneItems,
   onToggle,
+  onEdit,
   onDelete,
 }) {
   const esIngreso = t.tipo_movimiento === "ingreso";
@@ -79,9 +80,20 @@ export default function FilaTransaccion({
         {fmt(t.valor)}
       </td>
       <td>
-        <button className="btn btn-danger btn-sm" onClick={onDelete}>
-          ✕
-        </button>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            className="btn btn-icon btn-sm"
+            onClick={onEdit}
+            title="Editar">
+            ✎
+          </button>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={onDelete}
+            title="Eliminar">
+            ✕
+          </button>
+        </div>
       </td>
     </tr>
   );

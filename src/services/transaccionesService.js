@@ -1,5 +1,4 @@
 import { supabase } from "./supabaseClient";
-import { itemsService } from "./itemsService";
 
 export const transaccionesService = {
   async getAll() {
@@ -11,33 +10,27 @@ export const transaccionesService = {
     return data;
   },
 
-  // Crea la transacción cabecera + todas sus líneas de detalle
+  // Crea la cabecera + sus líneas de detalle en una sola operación atómica
+  // (función crear_transaccion en Supabase, ver schema.sql)
   async create({ transaccion, items }) {
-    // 1. Insertar cabecera
-    const { data: txData, error: txError } = await supabase
-      .from("transacciones")
-      .insert([transaccion])
-      .select();
-    if (txError) throw txError;
-    const tx = txData[0];
+    const { data, error } = await supabase.rpc("crear_transaccion", {
+      p_transaccion: transaccion,
+      p_items: items || [],
+    });
+    if (error) throw error;
+    return data;
+  },
 
-    // 2. Insertar items si es ingreso
-    if (items && items.length > 0) {
-      const rows = items.map((item) => ({
-        transaccion_id: tx.id,
-        tamano: item.tamano,
-        gramos: item.gramos,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario,
-        subtotal: item.subtotal,
-      }));
-      const itemsCreados = await itemsService.createMany(rows);
-      tx.transaccion_items = itemsCreados;
-    } else {
-      tx.transaccion_items = [];
-    }
-
-    return tx;
+  // Actualiza la cabecera y reemplaza sus líneas de detalle en una sola
+  // operación atómica (función actualizar_transaccion en Supabase)
+  async update(id, { transaccion, items }) {
+    const { data, error } = await supabase.rpc("actualizar_transaccion", {
+      p_id: id,
+      p_transaccion: transaccion,
+      p_items: items || [],
+    });
+    if (error) throw error;
+    return data;
   },
 
   async delete(id) {

@@ -33,6 +33,27 @@ export function useTransacciones() {
     }
   };
 
+  const actualizar = async (id, { transaccion, items }) => {
+    try {
+      const actualizada = await transaccionesService.update(id, {
+        transaccion,
+        items,
+      });
+      setTransacciones((prev) =>
+        prev
+          .map((t) => (t.id === id ? actualizada : t))
+          .sort((a, b) => b.fecha.localeCompare(a.fecha)),
+      );
+      toast.success(
+        "Transacción actualizada",
+        `${transaccion.tipo_movimiento === "ingreso" ? "Venta" : transaccion.categoria} por ${fmt(transaccion.valor)}`,
+      );
+      return actualizada;
+    } catch {
+      toast.error("Error", "No se pudo actualizar la transacción");
+    }
+  };
+
   const eliminar = async (id) => {
     try {
       await transaccionesService.delete(id);
@@ -56,5 +77,12 @@ export function useTransacciones() {
     return tx.length ? tx[0].fecha : null;
   };
 
-  return { transacciones, crear, eliminar, getByCliente, getUltimaVenta };
+  return {
+    transacciones,
+    crear,
+    actualizar,
+    eliminar,
+    getByCliente,
+    getUltimaVenta,
+  };
 }

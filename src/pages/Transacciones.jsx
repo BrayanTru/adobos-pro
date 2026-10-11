@@ -9,7 +9,7 @@ import KpisAnio from "../components/transacciones/KpisAnio";
 import ConfirmModal from "../components/ui/ConfirmModal";
 
 export default function Transacciones() {
-  const { crear, eliminar } = useTransacciones();
+  const { transacciones, crear, actualizar, eliminar } = useTransacciones();
   const { upsert, getByCliente } = useRecordatorios();
   const {
     anios,
@@ -26,20 +26,63 @@ export default function Transacciones() {
   } = useTransaccionesFiltradas();
 
   const [showForm, setShowForm] = useState(false);
+  const [editando, setEditando] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const mesActual = new Date().getMonth();
+
+  const actualizarRecordatorio = async (clienteId, fechaUltimaVenta) => {
+    const rec = getByCliente(clienteId);
+    await upsert({
+      clienteId,
+      fechaUltimaVenta,
+      diasRecordatorio: rec?.dias_recordatorio || 25,
+    });
+  };
+
+  // Fecha de la venta más reciente del cliente, ignorando la transacción editada
+  const ultimaVentaSin = (clienteId, excluirId) =>
+    transacciones
+      .filter(
+        (t) =>
+          t.id !== excluirId &&
+          t.cliente_id === clienteId &&
+          t.tipo_movimiento === "ingreso",
+      )
+      .reduce((max, t) => (!max || t.fecha > max ? t.fecha : max), null);
 
   const handleSave = async ({ transaccion, items }) => {
     await crear({ transaccion, items });
     if (transaccion.tipo_movimiento === "ingreso" && transaccion.cliente_id) {
-      const rec = getByCliente(transaccion.cliente_id);
-      await upsert({
-        clienteId: transaccion.cliente_id,
-        fechaUltimaVenta: transaccion.fecha,
-        diasRecordatorio: rec?.dias_recordatorio || 25,
-      });
+      await actualizarRecordatorio(transaccion.cliente_id, transaccion.fecha);
     }
     setShowForm(false);
+  };
+
+  const handleUpdate = async ({ transaccion, items }) => {
+    const original = editando;
+    const actualizada = await actualizar(original.id, { transaccion, items });
+    // Si falló, el formulario queda abierto para reintentar
+    if (!actualizada) return;
+    if (transaccion.tipo_movimiento === "ingreso") {
+      // El recordatorio refleja la venta más reciente del cliente
+      if (transaccion.cliente_id) {
+        const otra = ultimaVentaSin(transaccion.cliente_id, original.id);
+        await actualizarRecordatorio(
+          transaccion.cliente_id,
+          otra && otra > transaccion.fecha ? otra : transaccion.fecha,
+        );
+      }
+      // Si la venta cambió de cliente, recalcula el recordatorio del anterior
+      if (
+        original.cliente_id &&
+        original.cliente_id !== transaccion.cliente_id &&
+        getByCliente(original.cliente_id)
+      ) {
+        const otra = ultimaVentaSin(original.cliente_id, original.id);
+        if (otra) await actualizarRecordatorio(original.cliente_id, otra);
+      }
+    }
+    setEditando(null);
   };
 
   const handleDelete = (id) => setConfirm({ id });
@@ -96,6 +139,7 @@ export default function Transacciones() {
             mes={mes}
             transacciones={txs}
             clientes={clientes}
+            onEdit={setEditando}
             onDelete={handleDelete}
             defaultAbierto={mes === mesActual}
           />
@@ -107,6 +151,16 @@ export default function Transacciones() {
           clientes={clientes}
           onSave={handleSave}
           onClose={() => setShowForm(false)}
+        />
+      )}
+
+      {editando && (
+        <FormTransaccion
+          key={editando.id}
+          clientes={clientes}
+          inicial={editando}
+          onSave={handleUpdate}
+          onClose={() => setEditando(null)}
         />
       )}
 

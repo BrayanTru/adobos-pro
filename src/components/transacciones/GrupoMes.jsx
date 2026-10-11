@@ -7,6 +7,7 @@ export default function GrupoMes({
   mes,
   transacciones,
   clientes,
+  onEdit,
   onDelete,
   defaultAbierto,
 }) {
@@ -146,6 +147,7 @@ export default function GrupoMes({
           <TablaTransacciones
             transacciones={transacciones}
             clientes={clientes}
+            onEdit={onEdit}
             onDelete={onDelete}
           />
         </div>

@@ -5,6 +5,7 @@ import FilaDetalle from "./FilaDetalle";
 export default function TablaTransacciones({
   transacciones,
   clientes,
+  onEdit,
   onDelete,
 }) {
   const [expandido, setExpandido] = useState(null);
@@ -50,6 +51,7 @@ export default function TablaTransacciones({
                   isOpen={isOpen}
                   tieneItems={tieneItems}
                   onToggle={() => setExpandido(isOpen ? null : t.id)}
+                  onEdit={() => onEdit(t)}
                   onDelete={() => onDelete(t.id)}
                 />
                 {isOpen && tieneItems && <FilaDetalle items={items} />}

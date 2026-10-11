@@ -15,15 +15,71 @@ const DEFAULT_EGRESO = {
   descripcion: "",
 };
 
-export default function FormTransaccion({ clientes, onSave, onClose }) {
-  const { precios } = usePrecios();
-  const [tipo, setTipo] = useState("ingreso");
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [clienteId, setClienteId] = useState("");
-  const [formaPago, setFormaPago] = useState("efectivo");
-  const [descripcion, setDescripcion] = useState("");
-  const [lineas, setLineas] = useState([{ ...LINEA_VACIA }]);
-  const [egreso, setEgreso] = useState(DEFAULT_EGRESO);
+const resumirItems = (items) =>
+  items.map((i) => `${i.tamano}×${i.cantidad}`).join(", ");
+
+// `inicial`: transacción existente a editar (si no viene, se crea una nueva)
+export default function FormTransaccion({
+  clientes,
+  inicial,
+  onSave,
+  onClose,
+}) {
+  const { precios: preciosActuales } = usePrecios();
+  const editando = Boolean(inicial);
+  const esIngresoInicial = inicial?.tipo_movimiento === "ingreso";
+  const itemsIniciales = inicial?.transaccion_items || [];
+
+  // Al editar una venta se conservan los precios con los que se registró,
+  // para que un cambio posterior de precios no altere ventas pasadas
+  const precios = preciosActuales.map((p) => {
+    const original = itemsIniciales.find((i) => i.tamano === p.tamano);
+    return original
+      ? {
+          ...p,
+          precio: Number(original.precio_unitario),
+          gramos: original.gramos,
+        }
+      : p;
+  });
+
+  const [tipo, setTipo] = useState(inicial?.tipo_movimiento || "ingreso");
+  const [fecha, setFecha] = useState(
+    esIngresoInicial ? inicial.fecha : new Date().toISOString().split("T")[0],
+  );
+  const [clienteId, setClienteId] = useState(
+    esIngresoInicial ? inicial.cliente_id || "" : "",
+  );
+  const [formaPago, setFormaPago] = useState(
+    esIngresoInicial ? inicial.forma_pago : "efectivo",
+  );
+  // Si la descripción era la generada automáticamente, se deja vacía
+  // para que se regenere con los productos editados
+  const [descripcion, setDescripcion] = useState(
+    esIngresoInicial && inicial.descripcion !== resumirItems(itemsIniciales)
+      ? inicial.descripcion || ""
+      : "",
+  );
+  const [lineas, setLineas] = useState(
+    esIngresoInicial && itemsIniciales.length
+      ? itemsIniciales.map((i) => ({
+          tamano: i.tamano,
+          cantidad: String(i.cantidad),
+        }))
+      : [{ ...LINEA_VACIA }],
+  );
+  const [egreso, setEgreso] = useState(
+    editando && !esIngresoInicial
+      ? {
+          fecha: inicial.fecha,
+          categoria: inicial.categoria,
+          cliente_id: inicial.cliente_id || "",
+          forma_pago: inicial.forma_pago,
+          valor: String(inicial.valor),
+          descripcion: inicial.descripcion || "",
+        }
+      : DEFAULT_EGRESO,
+  );
   const [saving, setSaving] = useState(false);
 
   const handleTipo = (t) => {
@@ -56,9 +112,7 @@ export default function FormTransaccion({ clientes, onSave, onClose }) {
       }
       const totalValor = items.reduce((s, i) => s + i.subtotal, 0);
       const totalUnd = items.reduce((s, i) => s + i.cantidad, 0);
-      const resumenTamanos = items
-        .map((i) => `${i.tamano}×${i.cantidad}`)
-        .join(", ");
+      const resumenTamanos = resumirItems(items);
       await onSave({
         transaccion: {
           fecha,
@@ -99,10 +153,14 @@ export default function FormTransaccion({ clientes, onSave, onClose }) {
 
   return (
     <Modal
-      title="Nueva Transacción"
-      subtitle="Registra un movimiento de ingreso o egreso"
+      title={editando ? "Editar Transacción" : "Nueva Transacción"}
+      subtitle={
+        editando
+          ? `Modifica los datos de este ${tipo}`
+          : "Registra un movimiento de ingreso o egreso"
+      }
       onClose={onClose}>
-      <SelectorTipo tipo={tipo} onChange={handleTipo} />
+      {!editando && <SelectorTipo tipo={tipo} onChange={handleTipo} />}
 
       {tipo === "ingreso" ? (
         <FormIngreso
@@ -135,7 +193,9 @@ export default function FormTransaccion({ clientes, onSave, onClose }) {
           }>
           {saving
             ? "Guardando..."
-            : tipo === "ingreso"
+            : editando
+              ? "✓ Guardar cambios"
+              : tipo === "ingreso"
               ? "✓ Registrar venta"
               : "✓ Guardar egreso"}
         </button>
